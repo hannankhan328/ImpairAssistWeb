@@ -1,71 +1,43 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Clock, Play } from "lucide-react"
+import axios from "axios"
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardFooter, CardHeader } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
-
-// Sample videos data
-const sampleVideos = [
-  {
-    id: "1",
-    title: "Introduction to Accessibility",
-    description: "Learn the basics of web accessibility and why it matters.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "4:32",
-  },
-  {
-    id: "2",
-    title: "Screen Reader Demonstration",
-    description: "See how screen readers interpret web content.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "6:15",
-  },
-  {
-    id: "3",
-    title: "Color Contrast Guidelines",
-    description: "Understanding WCAG color contrast requirements.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "3:45",
-  },
-  {
-    id: "4",
-    title: "Keyboard Navigation",
-    description: "How to make your site fully keyboard accessible.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "5:20",
-  },
-  {
-    id: "5",
-    title: "ARIA Roles and Attributes",
-    description: "Using ARIA to enhance accessibility.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "7:10",
-  },
-  {
-    id: "6",
-    title: "Mobile Accessibility",
-    description: "Best practices for accessible mobile experiences.",
-    thumbnail: "/placeholder.svg?height=180&width=320",
-    duration: "4:55",
-  },
-]
 
 export default function SamplesPage() {
   const router = useRouter()
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
+  const [videos, setVideos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [selectedVideo, setSelectedVideo] = useState(null)
 
-  const handleSelectVideo = (videoId: string) => {
-    setSelectedVideo(videoId)
-    const video = sampleVideos.find((v) => v.id === videoId)
-    if (video) {
-      router.push(`/player?video=${encodeURIComponent(video.title)}&source=sample&id=${videoId}`)
+  useEffect(() => {
+    async function fetchVideos() {
+      try {
+        const response = await axios.get("http://localhost:8080/videos")
+        setVideos(response.data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
+    fetchVideos()
+  }, [])
+
+  const handleSelectVideo = (videoId) => {
+    setSelectedVideo(videoId)
+    router.push(`/player?source=api&id=${videoId}`)
   }
+
+  if (loading) return <div>Loading videos...</div>
+  if (error) return <div>Error: {error}</div>
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -82,16 +54,16 @@ export default function SamplesPage() {
         <section className="container py-12 md:py-24">
           <div className="mx-auto max-w-5xl space-y-8">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Sample Videos</h1>
-              <p className="text-muted-foreground md:text-xl">Choose from our collection of pre-uploaded videos</p>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Videos</h1>
+              <p className="text-muted-foreground md:text-xl">Browse our collection of videos</p>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {sampleVideos.map((video) => (
+              {videos.map((video) => (
                 <Card key={video.id} className="overflow-hidden">
                   <div className="relative aspect-video">
                     <Image
                       src={video.thumbnail || "/placeholder.svg"}
-                      alt={video.title}
+                      alt="Video thumbnail"
                       fill
                       className="object-cover"
                     />
@@ -108,8 +80,7 @@ export default function SamplesPage() {
                     </div>
                   </div>
                   <CardHeader className="p-4">
-                    <CardTitle className="line-clamp-1 text-lg">{video.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">{video.description}</CardDescription>
+                    <CardDescription className="line-clamp-2">{video.transcription || "No description available"}</CardDescription>
                   </CardHeader>
                   <CardFooter className="p-4 pt-0">
                     <Button
@@ -129,4 +100,3 @@ export default function SamplesPage() {
     </div>
   )
 }
-

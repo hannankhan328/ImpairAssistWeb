@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -19,6 +18,8 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeToggle } from "@/components/theme-toggle"
+import axios, { AxiosResponse } from "axios"
+
 
 export default function UploadPage() {
   const router = useRouter()
@@ -73,28 +74,44 @@ export default function UploadPage() {
     }
   }
 
-  const simulateUpload = () => {
+  const uploadFile = () => {
+    if (!file) return
+
     setIsUploading(true)
     setUploadProgress(0)
+    const formData = new FormData()
+    formData.append("video", file)
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setIsUploading(false)
-          setShowDialog(false)
-
-          // Simulate processing time
-          setTimeout(() => {
-            // Navigate to player page with the file name as a query param
-            router.push(`/player?video=${encodeURIComponent(file?.name || "uploaded-video")}&source=upload`)
-          }, 500)
-
-          return 100
-        }
-        return prev + 5
+    axios
+      .post("http://localhost:8080/transcribe", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: progressEvent => {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          )
+          setUploadProgress(progress)
+        },
       })
-    }, 200)
+      .then(response => {
+        setIsUploading(false)
+        setShowDialog(false)
+        // You can use the response data as needed.
+        // For now, we navigate to the player page using the file name as a query parameter.
+        router.push(
+          `/player?source=api&id=${response.data.record_id}`
+        )
+      })
+      .catch(error => {
+        setIsUploading(false)
+        toast({
+          title: "Upload error",
+          description:
+            error.response?.data?.error || error.message || "An error occurred during upload.",
+          variant: "destructive",
+        })
+      })
   }
 
   const cancelUpload = () => {
@@ -119,8 +136,12 @@ export default function UploadPage() {
         <section className="container py-12 md:py-24 lg:py-32">
           <div className="mx-auto max-w-3xl space-y-8">
             <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Upload Your Video</h1>
-              <p className="text-muted-foreground md:text-xl">Drag and drop your video file or click to browse</p>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Upload Your Video
+              </h1>
+              <p className="text-muted-foreground md:text-xl">
+                Drag and drop your video file or click to browse
+              </p>
             </div>
             <div
               className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center ${
@@ -138,18 +159,16 @@ export default function UploadPage() {
                   <p className="text-xl font-medium">
                     {isDragging ? "Drop your video here" : "Drag & drop your video here"}
                   </p>
-                  <p className="text-sm text-muted-foreground">Supports MP4, WebM, and MOV formats up to 500MB</p>
+                  <p className="text-sm text-muted-foreground">
+                    Supports MP4, WebM, and MOV formats up to 500MB
+                  </p>
                 </div>
                 <span className="text-sm text-muted-foreground">or</span>
                 <label htmlFor="video-upload">
-                  <Button as="span" variant="outline" className="cursor-pointer">
-                    Browse Files
-                  </Button>
                   <input
                     id="video-upload"
                     type="file"
                     accept="video/*"
-                    className="sr-only"
                     onChange={handleFileChange}
                   />
                 </label>
@@ -179,14 +198,16 @@ export default function UploadPage() {
           {isUploading && (
             <div className="space-y-2 py-4">
               <Progress value={uploadProgress} className="h-2 w-full" />
-              <p className="text-sm text-center text-muted-foreground">Uploading... {uploadProgress}%</p>
+              <p className="text-sm text-center text-muted-foreground">
+                Uploading... {uploadProgress}%
+              </p>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={cancelUpload} disabled={isUploading}>
               Cancel
             </Button>
-            <Button onClick={simulateUpload} disabled={isUploading}>
+            <Button onClick={uploadFile} disabled={isUploading}>
               {isUploading ? "Uploading..." : "Upload"}
             </Button>
           </DialogFooter>
@@ -196,4 +217,3 @@ export default function UploadPage() {
     </div>
   )
 }
-
