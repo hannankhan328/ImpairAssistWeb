@@ -1,128 +1,19 @@
 "use client"
-
-import type React from "react"
-
-import { useRef, useState } from "react"
-import Link from "next/link"
+import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, Maximize, Pause, Play, Volume2, VolumeX } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import axios from "axios"
+import { ArrowLeft, Pause, Play, VolumeX, Volume2, Maximize } from "lucide-react" // adjust import paths
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ThemeToggle } from "@/components/theme-toggle"
+// import { Button } from "@/components/ui/button"
+// import { ThemeToggle } from "@/components/theme-toggle"
 
-// Sample transcript data with timestamps
+// Fallback sample transcript if not using API
 const sampleTranscript = [
-  { id: 1, start: 0, end: 4.5, text: "Welcome to this video on web accessibility." },
-  {
-    id: 2,
-    start: 4.5,
-    end: 9.2,
-    text: "Accessibility is about making your website usable by as many people as possible.",
-  },
-  {
-    id: 3,
-    start: 9.2,
-    end: 15.8,
-    text: "This includes people with disabilities, older people, people using mobile devices, and those with slow internet connections.",
-  },
-  {
-    id: 4,
-    start: 15.8,
-    end: 22.5,
-    text: "There are several key principles to keep in mind when designing for accessibility.",
-  },
-  {
-    id: 5,
-    start: 22.5,
-    end: 28.3,
-    text: "First, ensure your content is perceivable. This means providing text alternatives for non-text content.",
-  },
-  {
-    id: 6,
-    start: 28.3,
-    end: 34.1,
-    text: "Second, make your interface operable. Users should be able to navigate and use your site with a keyboard.",
-  },
-  {
-    id: 7,
-    start: 34.1,
-    end: 40.6,
-    text: "Third, content should be understandable. Use clear language and provide helpful instructions.",
-  },
-  {
-    id: 8,
-    start: 40.6,
-    end: 46.2,
-    text: "Fourth, your content should be robust. It should work across different browsers and assistive technologies.",
-  },
-  {
-    id: 9,
-    start: 46.2,
-    end: 52.8,
-    text: "Let's look at some practical examples of how to implement these principles.",
-  },
-  {
-    id: 10,
-    start: 52.8,
-    end: 59.4,
-    text: "For images, always include descriptive alt text that conveys the purpose of the image.",
-  },
-  {
-    id: 11,
-    start: 59.4,
-    end: 65.7,
-    text: "For videos, provide captions and transcripts like the one you're reading right now.",
-  },
-  {
-    id: 12,
-    start: 65.7,
-    end: 72.3,
-    text: "Ensure sufficient color contrast between text and background to help users with visual impairments.",
-  },
-  {
-    id: 13,
-    start: 72.3,
-    end: 78.9,
-    text: "Use semantic HTML elements that clearly define the structure of your content.",
-  },
-  {
-    id: 14,
-    start: 78.9,
-    end: 85.5,
-    text: "Implement proper heading hierarchy to help screen reader users navigate your content.",
-  },
-  {
-    id: 15,
-    start: 85.5,
-    end: 92.1,
-    text: "Make sure all interactive elements are keyboard accessible and have visible focus states.",
-  },
-  {
-    id: 16,
-    start: 92.1,
-    end: 98.7,
-    text: "Test your website with actual assistive technologies to identify and fix issues.",
-  },
-  {
-    id: 17,
-    start: 98.7,
-    end: 105.3,
-    text: "Remember that accessibility benefits everyone, not just users with disabilities.",
-  },
-  {
-    id: 18,
-    start: 105.3,
-    end: 111.9,
-    text: "By implementing these practices, you create a better experience for all your users.",
-  },
-  { id: 19, start: 111.9, end: 118.5, text: "Thank you for watching this introduction to web accessibility." },
-  {
-    id: 20,
-    start: 118.5,
-    end: 125,
-    text: "For more resources, check out the Web Content Accessibility Guidelines (WCAG).",
-  },
+  { id: 1, start: 0, end: 10, text: "Welcome to the video." },
 ]
 
 export default function PlayerPage() {
@@ -137,22 +28,56 @@ export default function PlayerPage() {
   const [duration, setDuration] = useState(0)
   const [activeLineId, setActiveLineId] = useState<number | null>(null)
 
+  // State for transcript and video source loaded via API
+  // Transcript is expected to be an array of transcript lines
+  const [transcript, setTranscript] = useState<Array<{ id: number; start: number; end: number; text: string }>>([])
+  // const [videoSrc, setVideoSrc] = useState<string>("")
+  const [videoSrc, setVideoSrc] = useState<string>("/placeholder.svg")
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const transcriptRef = useRef<HTMLDivElement>(null)
+  const VID = videoId;
+  // Use Axios to fetch video data if using the API
+  useEffect(() => {
+    console.log("haha")
+    console.log(source)
+    if (source === "api") {
+      async function fetchVideoData() {
+        try {
+          const response = await axios.get(`http://localhost:8080/get_video/${VID}`);
+          if (response.status === 200) {
+            const data = response.data
+            console.log("Hannan Gay")
+            console.log(response.data.transcription)
+            // Assume the video is in mp4 format. Adjust MIME type if needed.
+            const base64Video = data.video
+            setVideoSrc(`data:video/mp4;base64,${base64Video}`)
+            // Set transcript with hardcoded id, start, and end values.
+            setTranscript([{ id: 1, start: 0, end: 10, text: data.transcription }])
+          } else {
+            console.error("Failed to fetch video data", response)
+          }
+        } catch (error) {
+          console.error("Error fetching video data:", error)
+          console.log("hannan", error)
+        }
+      }
+      fetchVideoData()
+    } else {
+      // Fallback: use the local sample transcript and video placeholder
+      setTranscript(sampleTranscript)
+      setVideoSrc("/placeholder.svg")
+    }
+  }, [source, videoId])
 
   // Handle video time update
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const time = videoRef.current.currentTime
       setCurrentTime(time)
-
-      // Find the current transcript line based on time
-      const activeLine = sampleTranscript.find((line) => time >= line.start && time <= line.end)
-
+      const activeLine = transcript.find((line) => time >= line.start && time <= line.end)
       if (activeLine && activeLine.id !== activeLineId) {
         setActiveLineId(activeLine.id)
-
-        // Scroll to the active line
         const lineElement = document.getElementById(`line-${activeLine.id}`)
         if (lineElement && transcriptRef.current) {
           lineElement.scrollIntoView({
@@ -164,7 +89,7 @@ export default function PlayerPage() {
     }
   }
 
-  // Format time in MM:SS format
+  // Format time in MM:SS
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
     const seconds = Math.floor(time % 60)
@@ -201,12 +126,11 @@ export default function PlayerPage() {
   }
 
   // Jump to specific transcript line
-  const jumpToLine = (line: (typeof sampleTranscript)[0]) => {
+  const jumpToLine = (line: { id: number; start: number; end: number; text: string }) => {
     if (videoRef.current) {
       videoRef.current.currentTime = line.start
       setCurrentTime(line.start)
       setActiveLineId(line.id)
-
       if (!isPlaying) {
         videoRef.current.play()
         setIsPlaying(true)
@@ -223,10 +147,8 @@ export default function PlayerPage() {
 
   // Enter fullscreen
   const enterFullscreen = () => {
-    if (videoRef.current) {
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen()
-      }
+    if (videoRef.current && videoRef.current.requestFullscreen) {
+      videoRef.current.requestFullscreen()
     }
   }
 
@@ -251,7 +173,7 @@ export default function PlayerPage() {
                 <video
                   ref={videoRef}
                   className="w-full h-full"
-                  src="/placeholder.svg"
+                  src={videoSrc}
                   poster="/placeholder.svg?height=360&width=640"
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
@@ -300,7 +222,7 @@ export default function PlayerPage() {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">{videoName}</h2>
               <p className="text-muted-foreground">
-                {source === "upload" ? "Your uploaded video" : "Sample video from our library"}
+                {source === "upload" ? "Your uploaded video" : "Video loaded from API"}
               </p>
             </div>
           </div>
@@ -314,21 +236,25 @@ export default function PlayerPage() {
             <Card>
               <ScrollArea className="h-[500px] rounded-md" ref={transcriptRef}>
                 <div className="p-4 space-y-2">
-                  {sampleTranscript.map((line) => (
-                    <div
-                      key={line.id}
-                      id={`line-${line.id}`}
-                      className={`transcript-line cursor-pointer ${activeLineId === line.id ? "active" : ""}`}
-                      onClick={() => jumpToLine(line)}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className="text-xs text-muted-foreground pt-1 w-12 shrink-0">
-                          {formatTime(line.start)}
-                        </span>
-                        <p>{line.text}</p>
+                  {transcript && transcript.length > 0 ? (
+                    transcript.map((line) => (
+                      <div
+                        key={line.id}
+                        id={`line-${line.id}`}
+                        className={`transcript-line cursor-pointer ${activeLineId === line.id ? "active" : ""}`}
+                        onClick={() => jumpToLine(line)}
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs text-muted-foreground pt-1 w-12 shrink-0">
+                            {formatTime(line.start)}
+                          </span>
+                          <p>{line.text}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p>Loading transcript...</p>
+                  )}
                 </div>
               </ScrollArea>
             </Card>
@@ -345,4 +271,3 @@ export default function PlayerPage() {
     </div>
   )
 }
-
