@@ -1,0 +1,436 @@
+"use client"
+
+import { useRef, useState, useEffect } from "react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import {
+  Video,
+  Maximize,
+  Pause,
+  Play,
+  Volume2,
+  VolumeX,
+  SkipBack,
+  SkipForward,
+} from "lucide-react"
+import axios from "axios"
+import { Card } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Skeleton } from "@/components/ui/skeleton"
+import { motion, AnimatePresence } from "framer-motion"
+
+// Sample transcript data with timestamps
+const sampleTranscript = [
+  { id: 1, start: 0, end: 10, text: "Welcome to the video." },
+]
+export default function PlayerPage() {
+  const searchParams = useSearchParams()
+  // const videoName = searchParams.get("video") || "Video"
+  const source = searchParams.get("source") || "upload"
+  const videoId = searchParams.get("id") || "1"
+
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [videoTitle, setVideoTitle] = useState("Video Title")
+  const [isMuted, setIsMuted] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [activeLineId, setActiveLineId] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [showControls, setShowControls] = useState(false)
+  const [volume, setVolume] = useState(1)
+  const [transcript, setTranscript] = useState<typeof sampleTranscript>([])
+  const [videoSrc, setVideoSrc] = useState("/placeholder.svg")
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const transcriptRef = useRef<HTMLDivElement>(null)
+  const playerRef = useRef<HTMLDivElement>(null)
+
+  // Fetch video data via API if source === "api", else use fallback sample data
+  useEffect(() => {
+    async function fetchVideoData() {
+      setIsLoading(true)
+      if (source === "api") {
+        try {
+          const response = await axios.get(`http://localhost:8080/get_video/${videoId}`)
+          if (response.status === 200) {
+            const data = response.data
+            const base64Video = data.video
+            setVideoSrc(`data:video/mp4;base64,${base64Video}`)
+            setTranscript([{ id: 1, start: 0, end: 10, text: data.transcription }])
+            setVideoTitle(data.title)
+          } else {
+            console.error("Failed to fetch video data", response)
+          }
+        } catch (error) {
+          console.error("Error fetching video data:", error)
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // Fallback: use sample transcript and placeholder video
+        setTranscript(sampleTranscript)
+        setVideoSrc("/placeholder.svg")
+        setIsLoading(false)
+      }
+    }
+    fetchVideoData()
+  }, [source, videoId])
+
+  // Handle video time update
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const time = videoRef.current.currentTime
+      setCurrentTime(time)
+      const activeLine = transcript.find((line) => time >= line.start && time <= line.end)
+      if (activeLine && activeLine.id !== activeLineId) {
+        setActiveLineId(activeLine.id)
+        const lineElement = document.getElementById(`line-${activeLine.id}`)
+        if (lineElement && transcriptRef.current) {
+          lineElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          })
+        }
+      }
+    }
+  }
+
+  // Format time in MM:SS format
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+  }
+
+  // Toggle play/pause
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  // Toggle mute
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted
+      setIsMuted(!isMuted)
+    }
+  }
+
+  // Handle seeking
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const seekTime = Number.parseFloat(e.target.value)
+    if (videoRef.current) {
+      videoRef.current.currentTime = seekTime
+      setCurrentTime(seekTime)
+    }
+  }
+
+  // Handle volume change
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = Number.parseFloat(e.target.value)
+    setVolume(newVolume)
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume
+      setIsMuted(newVolume === 0)
+    }
+  }
+
+  // Jump to specific transcript line
+  const jumpToLine = (line: (typeof sampleTranscript)[0]) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = line.start
+      setCurrentTime(line.start)
+      setActiveLineId(line.id)
+      if (!isPlaying) {
+        videoRef.current.play()
+        setIsPlaying(true)
+      }
+    }
+  }
+
+  // Skip forward/backward
+  const skip = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += seconds
+      setCurrentTime(videoRef.current.currentTime)
+    }
+  }
+
+  // Handle video metadata loaded
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration)
+    }
+  }
+
+  // Enter fullscreen
+  const enterFullscreen = () => {
+    if (playerRef.current && playerRef.current.requestFullscreen) {
+      playerRef.current.requestFullscreen()
+    }
+  }
+
+  // Show/hide controls on hover
+  const handleMouseEnter = () => setShowControls(true)
+  const handleMouseLeave = () => setShowControls(false)
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      {/* Updated header to match homepage */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <Video className="h-6 w-6 text-primary" />
+            <span className="gradient-heading">Impair Assist</span>
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <main className="flex-1 container py-8">
+        {/* Background gradient and decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background dark:from-primary/10 dark:via-background dark:to-background -z-10" />
+        <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/5 dark:bg-primary/10 blur-3xl -z-10"></div>
+        <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-secondary/5 dark:bg-secondary/10 blur-3xl -z-10"></div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          {/* Video Player Section */}
+          <div className="space-y-4">
+            <Card className="overflow-hidden border-2 hover:border-primary/30 transition-colors duration-300">
+              <div
+                ref={playerRef}
+                className="relative bg-black aspect-video"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                {isLoading ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="space-y-4 w-full px-8">
+                      <Skeleton className="h-full w-full aspect-video" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full"
+                      src={videoSrc}
+                      poster="/placeholder.svg?height=360&width=640"
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                    />
+
+                    {/* Video Controls Overlay */}
+                    <AnimatePresence>
+                      {(showControls || !isPlaying) && (
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div className="p-4 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-white">{formatTime(currentTime)}</span>
+                              <div className="relative flex-1 group">
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max={duration || 100}
+                                  value={currentTime}
+                                  onChange={handleSeek}
+                                  className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer group-hover:h-2 transition-all duration-200"
+                                  style={{
+                                    background: `linear-gradient(to right, white ${
+                                      (currentTime / (duration || 100)) * 100
+                                    }%, rgba(255,255,255,0.3) ${
+                                      (currentTime / (duration || 100)) * 100
+                                    }%)`,
+                                  }}
+                                />
+                                <div
+                                  className="absolute top-0 h-1 group-hover:h-2 transition-all duration-200 rounded-lg bg-primary"
+                                  style={{
+                                    width: `${(currentTime / (duration || 100)) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-white">{formatTime(duration)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="text-white p-1 rounded-full hover:bg-white/10"
+                                  onClick={() => skip(-10)}
+                                >
+                                  <SkipBack className="h-5 w-5" />
+                                </motion.button>
+
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="text-white p-2 rounded-full bg-white/20 hover:bg-white/30"
+                                  onClick={togglePlay}
+                                >
+                                  {isPlaying ? (
+                                    <Pause className="h-5 w-5" />
+                                  ) : (
+                                    <Play className="h-5 w-5" fill="currentColor" />
+                                  )}
+                                </motion.button>
+
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="text-white p-1 rounded-full hover:bg-white/10"
+                                  onClick={() => skip(10)}
+                                >
+                                  <SkipForward className="h-5 w-5" />
+                                </motion.button>
+
+                                <div className="flex items-center gap-1 group relative">
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="text-white p-1 rounded-full hover:bg-white/10"
+                                    onClick={toggleMute}
+                                  >
+                                    {isMuted || volume === 0 ? (
+                                      <VolumeX className="h-5 w-5" />
+                                    ) : (
+                                      <Volume2 className="h-5 w-5" />
+                                    )}
+                                  </motion.button>
+
+                                  <div className="w-0 overflow-hidden group-hover:w-20 transition-all duration-300">
+                                    <input
+                                      type="range"
+                                      min="0"
+                                      max="1"
+                                      step="0.01"
+                                      value={volume}
+                                      onChange={handleVolumeChange}
+                                      className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                                      style={{
+                                        background: `linear-gradient(to right, white ${volume * 100}%, rgba(255,255,255,0.3) ${volume * 100}%)`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                className="text-white p-1 rounded-full hover:bg-white/10"
+                                onClick={enterFullscreen}
+                              >
+                                <Maximize className="h-5 w-5" />
+                              </motion.button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Center play button when paused */}
+                    {!isPlaying && !showControls && (
+                      <motion.button
+                        className="absolute inset-0 flex items-center justify-center"
+                        onClick={togglePlay}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <div className="rounded-full bg-white/20 p-4">
+                          <Play className="h-8 w-8 text-white" fill="white" />
+                        </div>
+                      </motion.button>
+                    )}
+                  </>
+                )}
+              </div>
+            </Card>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold gradient-heading">{videoTitle}</h2>
+              <p className="text-muted-foreground dark:text-gray-200">
+                {source === "upload" ? "Your uploaded video" : "Sample video from our library"}
+              </p>
+            </div>
+          </div>
+
+          {/* Transcript Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold gradient-heading">Transcript</h2>
+              <p className="text-sm text-muted-foreground dark:text-gray-200">
+                Click on any line to jump to that part of the video
+              </p>
+            </div>
+            <Card className="border-2 hover:border-primary/30 transition-colors duration-300">
+              {isLoading ? (
+                <div className="p-4 space-y-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex gap-2">
+                      <Skeleton className="h-5 w-12" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-3/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ScrollArea className="h-[325px] rounded-md" ref={transcriptRef}>
+                  <div className="p-4 space-y-2">
+                    {transcript.map((line) => (
+                      <motion.div
+                        key={line.id}
+                        id={`line-${line.id}`}
+                        className={`transcript-line cursor-pointer rounded-lg ${
+                          activeLineId === line.id ? "active" : ""
+                        }`}
+                        onClick={() => jumpToLine(line)}
+                        whileHover={{ backgroundColor: "rgba(2, 63, 108, 0.05)" }}
+                        animate={
+                          activeLineId === line.id
+                            ? { backgroundColor: "rgba(2, 63, 108, 0.1)", transition: { duration: 0.3 } }
+                            : {}
+                        }
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs text-muted-foreground dark:text-gray-200 pt-1 w-12 shrink-0">
+                            {formatTime(line.start)}
+                          </span>
+                          <p className="dark:text-gray-200">{line.text}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </Card>
+          </div>
+        </div>
+      </main>
+      <footer className="border-t py-6 bg-[#b8c7d8] dark:bg-black">
+        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
+          <p className="text-center text-sm leading-loose text-muted-foreground dark:text-gray-200 md:text-left">
+            © 2025 Impair Assist. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}

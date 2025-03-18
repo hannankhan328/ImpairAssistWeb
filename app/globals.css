@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 30% 85%; /* Darker blue-gray background */
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 206 100% 22%; /* Blue #023F6C - matches the IMPAIR text */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 350 100% 26%; /* Red #830027 - matches the ASSIST text */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 90%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 206 30% 85%;
+    --accent-foreground: 206 100% 22%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
+    --ring: 206 100% 22%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 206 50% 9%; /* Even darker blue background */
+    --foreground: 0 0% 100%; /* Pure white text in dark mode */
+
+    --card: 206 50% 15%;
+    --card-foreground: 0 0% 100%; /* White text on cards */
+
+    --popover: 206 50% 15%;
+    --popover-foreground: 0 0% 100%; /* White text on popovers */
+
+    --primary: 206 70% 50%; /* Lighter blue for dark mode */
+    --primary-foreground: 0 0% 100%; /* White text on primary elements */
+
+    --secondary: 350 70% 50%; /* Lighter red for dark mode */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary elements */
+
+    --muted: 206 30% 20%;
+    --muted-foreground: 0 0% 90%; /* Much lighter gray, almost white */
+
+    --accent: 206 30% 25%;
+    --accent-foreground: 0 0% 100%; /* White text on accent elements */
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%; /* White text on destructive elements */
+
+    --border: 206 30% 25%;
+    --input: 206 30% 25%;
+    --ring: 206 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+
+/* Custom Components */
+@layer components {
+  .gradient-heading {
+    @apply text-primary;
+  }
+
+  .gradient-border {
+    @apply relative border-0 before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:bg-gradient-to-r before:from-primary before:via-primary/50 before:to-secondary;
+  }
+
+  .glass-card {
+    @apply bg-white/80 dark:bg-black/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .shimmer {
+    @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
+  }
+
+  .floating {
+    @apply animate-float;
+  }
+
+  .btn-gradient {
+    @apply bg-primary hover:bg-primary/90 text-white font-medium;
+  }
+
+  .btn-outline-gradient {
+    @apply border border-primary/50 hover:border-primary text-primary dark:text-primary-foreground font-medium;
+  }
+}
+
+.transcript-line {
+  @apply p-2 rounded-md transition-colors duration-200;
+}
+
+.transcript-line.active {
+  @apply bg-primary/10 dark:bg-primary/30 font-medium border-l-4 border-primary;
+}
+
+.dark .video-controls {
+  @apply bg-gray-900;
+}
+
+
+/* Fancy hover effects */
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+
+/* Animated background */
+.animated-bg {
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 dark:bg-primary/70 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/70 dark:bg-primary/50;
+}
+
+/* Video player custom styles */
+.video-progress {
+  @apply h-1 bg-white/30 rounded-lg appearance-none cursor-pointer transition-all duration-200;
+}
+
+.video-progress::-webkit-slider-thumb {
+  @apply appearance-none w-3 h-3 rounded-full bg-white;
+}
+
+.video-progress:hover {
+  @apply h-2;
+}
+
+/* Floating action button */
+.fab-container {
+  @apply fixed bottom-6 right-6 z-40;
+}
+
+.fab-button {
+  @apply w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary text-white flex items-center justify-center shadow-lg;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+.card-hover::before {
+  content: "";
+  @apply absolute inset-0 rounded-lg bg-gradient-to-r from-primary/0 via-secondary/0 to-primary/0 opacity-0 transition-opacity duration-300;
+  z-index: -1;
+}
+
+.card-hover:hover::before {
+  @apply opacity-100 from-primary/10 via-secondary/10 to-primary/10;
+}
+
+/* Decorative elements */
+.decorative-dots {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.decorative-grid {
+  background-image: linear-gradient(to right, rgba(var(--primary), 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--primary), 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Animated underline */
+.animated-underline {
+  @apply relative;
+}
+
+.animated-underline::after {
+  content: "";
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
+}
+
+.animated-underline:hover::after {
+  @apply w-full;
+}
+
+/* Glow effects */
+.glow-on-hover {
+  @apply relative overflow-hidden;
+}
+
+.glow-on-hover::before {
+  content: "";
+  @apply absolute inset-0 bg-gradient-to-r from-primary/0 via-secondary/0 to-primary/0 blur-xl opacity-0 transition-opacity duration-300;
+  z-index: -1;
+}
+
+.glow-on-hover:hover::before {
+  @apply opacity-100 from-primary/30 via-secondary/30 to-primary/30;
+}
+
+/* Add specific dark mode overrides for buttons and white backgrounds */
+@layer utilities {
+  .dark .bg-white,
+  .dark .bg-white\/95,
+  .dark .bg-white\/80,
+  .dark .bg-white\/90,
+  .dark .bg-white\/100 {
+    @apply text-gray-900;
+  }
+
+  .dark .text-muted-foreground {
+    @apply text-gray-200;
+  }
+
+  /* Ensure buttons with white backgrounds have black text in dark mode */
+  .dark .bg-white button,
+  .dark .bg-white\/95 button,
+  .dark .bg-white\/80 button,
+  .dark .bg-white\/90 button,
+  .dark .bg-white\/100 button {
+    @apply text-gray-900;
+  }
+}
+
