@@ -38,28 +38,16 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "autoprefixer": "^10.4.20",
-=======
     "@types/react": "19.0.10",
     "@types/react-dom": "latest",
     "autoprefixer": "^10.4.20",
-    "axios": "^1.8.2",
->>>>>>> dev-hannan
-=======
-    "autoprefixer": "^10.4.20",
     "axios": "^1.8.3",
->>>>>>> hannan
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
-<<<<<<< HEAD
-=======
     "framer-motion": "latest",
->>>>>>> hannan
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "15.1.0",
@@ -77,19 +65,11 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "@types/node": "22.13.10",
-=======
     "@types/node": "^22",
->>>>>>> hannan
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
-<<<<<<< HEAD
-    "typescript": "5.8.2"
-=======
     "typescript": "^5"
->>>>>>> hannan
   }
 }
