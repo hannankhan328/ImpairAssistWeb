@@ -4,11 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-<<<<<<< HEAD
-import { ArrowLeft, Upload } from "lucide-react"
-=======
 import { Video, Upload, FileUp, CheckCircle2, ArrowLeft } from "lucide-react"
->>>>>>> hannan
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,11 +18,8 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeToggle } from "@/components/theme-toggle"
-<<<<<<< HEAD
-=======
 import { ConfettiEffect } from "@/components/confetti-effect"
 import { motion } from "framer-motion"
->>>>>>> hannan
 import axios, { AxiosResponse } from "axios"
 
 
@@ -37,10 +30,7 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [showDialog, setShowDialog] = useState(false)
-<<<<<<< HEAD
-=======
   const [uploadComplete, setUploadComplete] = useState(false)
->>>>>>> hannan
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -126,30 +116,16 @@ export default function UploadPage() {
         })
       })
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> hannan
   const cancelUpload = () => {
     setFile(null)
     setShowDialog(false)
     setIsUploading(false)
     setUploadProgress(0)
-<<<<<<< HEAD
-=======
     setUploadComplete(false)
->>>>>>> hannan
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-<<<<<<< HEAD
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Home</span>
-=======
       {uploadComplete && <ConfettiEffect />}
 
       {/* Updated header to match homepage */}
@@ -159,36 +135,10 @@ export default function UploadPage() {
             <ArrowLeft className="h-5 w-5" />
             <Video className="h-6 w-6 text-primary" />
             <span className="gradient-heading">Impair Assist</span>
->>>>>>> hannan
           </Link>
           <ThemeToggle />
         </div>
       </header>
-<<<<<<< HEAD
-      <main className="flex-1">
-        <section className="container py-12 md:py-24 lg:py-32">
-          <div className="mx-auto max-w-3xl space-y-8">
-            <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Upload Your Video
-              </h1>
-              <p className="text-muted-foreground md:text-xl">
-                Drag and drop your video file or click to browse
-              </p>
-            </div>
-            <div
-              className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center ${
-                isDragging ? "border-primary bg-primary/5" : "border-border"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="rounded-full bg-primary/10 p-6">
-                  <Upload className="h-10 w-10 text-primary" />
-                </div>
-=======
 
       <main className="flex-1 relative">
         {/* Background gradient updated to match homepage */}
@@ -228,19 +178,10 @@ export default function UploadPage() {
                 >
                   <Upload className="h-10 w-10 text-primary" />
                 </motion.div>
->>>>>>> hannan
                 <div className="space-y-2">
                   <p className="text-xl font-medium">
                     {isDragging ? "Drop your video here" : "Drag & drop your video here"}
                   </p>
-<<<<<<< HEAD
-                  <p className="text-sm text-muted-foreground">
-                    Supports MP4, WebM, and MOV formats up to 500MB
-                  </p>
-                </div>
-                <span className="text-sm text-muted-foreground">or</span>
-                <label htmlFor="video-upload">
-=======
                   <p className="text-sm text-muted-foreground dark:text-gray-200">
                     Supports MP4, WebM, and MOV formats up to 500MB
                   </p>
@@ -251,30 +192,15 @@ export default function UploadPage() {
                     <FileUp className="mr-2 h-4 w-4 transition-transform group-hover:translate-y-[-2px]" />
                     Browse Files
                   </Button> */}
->>>>>>> hannan
                   <input
                     id="video-upload"
                     type="file"
                     accept="video/*"
-<<<<<<< HEAD
-=======
                     // className="sr-only"
->>>>>>> hannan
                     onChange={handleFileChange}
                   />
                 </label>
               </div>
-<<<<<<< HEAD
-            </div>
-            <div className="space-y-4 text-center">
-              <h2 className="text-xl font-semibold">Supported Formats</h2>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <div className="rounded-md bg-muted px-3 py-1 text-sm">MP4</div>
-                <div className="rounded-md bg-muted px-3 py-1 text-sm">WebM</div>
-                <div className="rounded-md bg-muted px-3 py-1 text-sm">MOV</div>
-                <div className="rounded-md bg-muted px-3 py-1 text-sm">AVI</div>
-                <div className="rounded-md bg-muted px-3 py-1 text-sm">MKV</div>
-=======
             </motion.div>
             <div className="space-y-4 text-center">
               <h2 className="text-xl font-semibold">Supported Formats</h2>
@@ -309,7 +235,6 @@ export default function UploadPage() {
                 >
                   MKV
                 </motion.div>
->>>>>>> hannan
               </div>
             </div>
           </div>
@@ -326,22 +251,11 @@ export default function UploadPage() {
           {isUploading && (
             <div className="space-y-2 py-4">
               <Progress value={uploadProgress} className="h-2 w-full" />
-<<<<<<< HEAD
-              <p className="text-sm text-center text-muted-foreground">
-=======
               <p className="text-sm text-center text-muted-foreground dark:text-gray-200">
->>>>>>> hannan
                 Uploading... {uploadProgress}%
               </p>
             </div>
           )}
-<<<<<<< HEAD
-          <DialogFooter>
-            <Button variant="outline" onClick={cancelUpload} disabled={isUploading}>
-              Cancel
-            </Button>
-            <Button onClick={uploadFile} disabled={isUploading}>
-=======
           {uploadComplete && (
             <div className="flex flex-col items-center justify-center py-6 space-y-4">
               <motion.div
@@ -360,7 +274,6 @@ export default function UploadPage() {
               Cancel
             </Button>
             <Button onClick={uploadFile} disabled={isUploading || uploadComplete} className="bg-primary text-white">
->>>>>>> hannan
               {isUploading ? "Uploading..." : "Upload"}
             </Button>
           </DialogFooter>
@@ -370,7 +283,3 @@ export default function UploadPage() {
     </div>
   )
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> hannan
